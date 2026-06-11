@@ -16,6 +16,12 @@ use App\Http\Controllers\API\Rider\RiderProfileController;
 use App\Http\Controllers\API\Rider\RiderLocationController;
 
 
+Route::get('/test', function () {
+    return response()->json([
+        'status' => 'api ok'
+    ]);
+});
+
 // =========================================
 // CUSTOMER API
 // =========================================
