@@ -27,9 +27,10 @@
                 </div>
             @endif
 
-            <form method="POST"
-                  action="{{ route('restaurant.register.store') }}"
-                  enctype="multipart/form-data">
+            <a href="{{ secure_url('/restaurant/register') }}"
+   class="btn btn-success">
+    Register Restaurant
+</a>
 
                 @csrf
 

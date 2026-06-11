@@ -20,7 +20,7 @@
                     <div class="alert alert-danger">{{ session('error') }}</div>
                 @endif
 
-             <form method="POST" action="{{ route('web.login') }}">
+             <form method="POST" action="{{ secure_url('/login') }}">
     @csrf
 
     <div class="mb-3">
