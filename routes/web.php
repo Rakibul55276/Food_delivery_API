@@ -15,11 +15,11 @@ use App\Http\Controllers\API\Admin\AdminCustomerController;
 use App\Http\Controllers\API\Admin\AdminOrderController;
 use App\Http\Controllers\API\Admin\AdminRiderController;
 
-Route::get('/web-test', function () {
-    return response()->json([
-        'status' => 'web ok'
-    ]);
-});
+// Route::get('/web-test', function () {
+//     return response()->json([
+//         'status' => 'web ok'
+//     ]);
+// });
 
 Route::get('/restaurant/register', [WebRestaurantAuthController::class, 'showRegisterForm'])
     ->name('restaurant.register');
