@@ -15,22 +15,24 @@ use App\Http\Controllers\API\Rider\RiderOrderController;
 use App\Http\Controllers\API\Rider\RiderProfileController;
 use App\Http\Controllers\API\Rider\RiderLocationController;
 
+Route::get('/test', function () {
+    return response()->json([
+        'status' => 'api ok'
+    ]);
+});
 
-// Route::get('/test', function () {
-//     return response()->json([
-//         'status' => 'api ok'
-//     ]);
-// });
-
-// =========================================
 // CUSTOMER API
-// =========================================
-
 Route::prefix('customer')->group(function () {
 
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
+    // PUBLIC CATALOG ROUTES
+    Route::apiResource('restaurants', RestaurantController::class)->only(['index', 'show']);
+    Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
+    Route::apiResource('food-items', FoodItemController::class)->only(['index', 'show']);
+
+    // PROTECTED CUSTOMER ROUTES
     Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/profile', [AuthController::class, 'profile']);
@@ -40,27 +42,14 @@ Route::prefix('customer')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
 
         Route::apiResource('addresses', AddressController::class);
-
-        Route::apiResource('restaurants', RestaurantController::class);
-        Route::apiResource('categories', CategoryController::class);
-        Route::apiResource('food-items', FoodItemController::class);
-
         Route::apiResource('cart', CartController::class);
-
         Route::apiResource('orders', OrderController::class);
 
-        Route::patch(
-            '/orders/{id}/status',
-            [OrderController::class, 'updateStatus']
-        );
+        Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
     });
 });
 
-
-// =========================================
 // RIDER API
-// =========================================
-
 Route::prefix('rider')->group(function () {
 
     Route::post('/login', [RiderAuthController::class, 'login']);
@@ -72,16 +61,9 @@ Route::prefix('rider')->group(function () {
 
         Route::get('/orders', [RiderOrderController::class, 'index']);
         Route::get('/orders/{id}', [RiderOrderController::class, 'show']);
-
-        Route::patch(
-            '/orders/{id}/status',
-            [RiderOrderController::class, 'updateStatus']
-        );
-
-        Route::post(
-            '/location',
-            [RiderLocationController::class, 'update']
-        );
+        Route::patch('/orders/{id}/status', [RiderOrderController::class, 'updateStatus']);
         Route::patch('/orders/{id}/accept', [RiderOrderController::class, 'accept']);
+
+        Route::post('/location', [RiderLocationController::class, 'update']);
     });
 });
