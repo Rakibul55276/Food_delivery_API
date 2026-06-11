@@ -9,7 +9,7 @@ class WebAuthController extends Controller
 {
     public function showLoginForm()
     {
-        return view('auth.login');
+        return view('auth.restaurant.login');
     }
 
     public function login(Request $request)
