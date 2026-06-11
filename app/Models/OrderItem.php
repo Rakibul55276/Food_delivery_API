@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class OrderItem extends Model
+{
+    protected $table = 'order_items';
+
+    protected $fillable = [
+        'order_id',
+    'food_item_id',
+    'price',
+    'quantity',
+    'total',
+    ];
+
+    public function foodItem()
+    {
+        return $this->belongsTo(FoodItem::class);
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+}

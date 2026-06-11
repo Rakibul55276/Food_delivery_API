@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class FoodItem extends Model
+{
+protected $fillable = [
+    'restaurant_id',
+    'category_id',
+    'name',
+    'description',
+    'price',
+    'discount_price',
+    'image',
+    'is_available',
+];
+
+    public function restaurant()
+    {
+        return $this->belongsTo(Restaurant::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+}
