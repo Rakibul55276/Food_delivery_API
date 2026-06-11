@@ -1,13 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\WebRestaurantAuthController;
 use App\Http\Controllers\WebAuthController;
+
 use App\Http\Controllers\API\Restaurant\RestaurantDashboardController;
 use App\Http\Controllers\API\Restaurant\RestaurantFoodController;
 use App\Http\Controllers\API\Restaurant\RestaurantCategoryController;
 use App\Http\Controllers\API\Restaurant\RestaurantProfileController;
 use App\Http\Controllers\API\Restaurant\RestaurantOrderController;
+
 use App\Http\Controllers\API\Admin\AdminDashboardController;
 use App\Http\Controllers\API\Admin\AdminRestaurantController;
 use App\Http\Controllers\API\Admin\AdminFoodController;
@@ -15,57 +18,83 @@ use App\Http\Controllers\API\Admin\AdminCustomerController;
 use App\Http\Controllers\API\Admin\AdminOrderController;
 use App\Http\Controllers\API\Admin\AdminRiderController;
 
+/*
+|--------------------------------------------------------------------------
+| Public Web Routes
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/restaurant/register', [WebRestaurantAuthController::class, 'showRegisterForm'])
     ->name('restaurant.register');
 
 Route::post('/restaurant/register', [WebRestaurantAuthController::class, 'register'])
     ->name('restaurant.register.store');
 
+Route::get('/login', [WebAuthController::class, 'showLoginForm'])
+    ->name('login');
 
-Route::get('/login', [WebAuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [WebAuthController::class, 'login'])->name('web.login');
-Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
+Route::post('/login', [WebAuthController::class, 'login'])
+    ->name('web.login');
+
+Route::post('/logout', [WebAuthController::class, 'logout'])
+    ->name('logout');
+
+/*
+|--------------------------------------------------------------------------
+| Restaurant Dashboard Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware(['auth', 'role:restaurant'])
     ->prefix('restaurant')
     ->name('restaurant.')
     ->group(function () {
 
-        Route::get('/dashboard',
-            [RestaurantDashboardController::class, 'index'])
+        Route::get('/dashboard', [RestaurantDashboardController::class, 'index'])
             ->name('dashboard');
 
-        Route::resource('foods',
-            RestaurantFoodController::class);
- Route::resource('categories', RestaurantCategoryController::class);
+        Route::resource('foods', RestaurantFoodController::class);
 
- Route::get('/profile', [RestaurantProfileController::class, 'edit'])
-    ->name('profile');
+        Route::resource('categories', RestaurantCategoryController::class);
 
-Route::put('/profile', [RestaurantProfileController::class, 'update'])
-    ->name('profile.update');
+        Route::get('/profile', [RestaurantProfileController::class, 'edit'])
+            ->name('profile');
 
-Route::get('/orders', [RestaurantOrderController::class, 'index'])
-    ->name('orders.index');
+        Route::put('/profile', [RestaurantProfileController::class, 'update'])
+            ->name('profile.update');
 
-    Route::patch('/orders/{order}/status', [RestaurantOrderController::class, 'updateStatus'])
-    ->name('orders.updateStatus');
+        Route::get('/orders', [RestaurantOrderController::class, 'index'])
+            ->name('orders.index');
 
-Route::patch('/orders/{order}/payment', [RestaurantOrderController::class, 'updatePayment'])
-    ->name('orders.updatePayment');
+        Route::get('/orders/{order}', [RestaurantOrderController::class, 'show'])
+            ->name('orders.show');
 
-    Route::get('/orders/{order}', [RestaurantOrderController::class, 'show'])
-    ->name('orders.show');
-            
+        Route::patch('/orders/{order}/status', [RestaurantOrderController::class, 'updateStatus'])
+            ->name('orders.updateStatus');
+
+        Route::patch('/orders/{order}/payment', [RestaurantOrderController::class, 'updatePayment'])
+            ->name('orders.updatePayment');
     });
 
-       Route::middleware(['auth', 'role:admin'])
+/*
+|--------------------------------------------------------------------------
+| Admin Dashboard Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
 
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Restaurants
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/restaurants', [AdminRestaurantController::class, 'index'])
             ->name('restaurants.index');
@@ -88,11 +117,26 @@ Route::patch('/orders/{order}/payment', [RestaurantOrderController::class, 'upda
         Route::patch('/restaurants/{restaurant}/toggle', [AdminRestaurantController::class, 'toggle'])
             ->name('restaurants.toggle');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Restaurant Categories
+        |--------------------------------------------------------------------------
+        */
+
         Route::get('/restaurants/{restaurant}/categories/create', [AdminRestaurantController::class, 'createCategory'])
             ->name('restaurants.categories.create');
 
         Route::post('/restaurants/{restaurant}/categories', [AdminRestaurantController::class, 'storeCategory'])
             ->name('restaurants.categories.store');
+
+        Route::delete('/categories/{category}', [AdminRestaurantController::class, 'destroyCategory'])
+            ->name('categories.destroy');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Foods
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/restaurants/{restaurant}/foods/create', [AdminFoodController::class, 'create'])
             ->name('foods.create');
@@ -108,38 +152,51 @@ Route::patch('/orders/{order}/payment', [RestaurantOrderController::class, 'upda
 
         Route::delete('/foods/{food}', [AdminFoodController::class, 'destroy'])
             ->name('foods.destroy');
-         Route::delete('/categories/{category}',[AdminRestaurantController::class, 'destroyCategory'])
-            ->name('categories.destroy');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Customers
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/customers', [AdminCustomerController::class, 'index'])
-                ->name('customers.index');
+            ->name('customers.index');
 
-        
-        Route::put('/customers/{user}', [AdminCustomerController::class, 'update'])
-                ->name('customers.update');
-
-                Route::get('/customers/create', [AdminCustomerController::class, 'create'])
-             ->name('customers.create');
-
-        Route::get('/customers/{user}', [AdminCustomerController::class, 'show'])
-            ->name('customers.show');
-
-        
+        Route::get('/customers/create', [AdminCustomerController::class, 'create'])
+            ->name('customers.create');
 
         Route::post('/customers', [AdminCustomerController::class, 'store'])
             ->name('customers.store');
 
-        Route::get('/customers/{user}/edit', [AdminCustomerController::class, 'edit'])  
-                ->name('customers.edit');
+        Route::get('/customers/{user}', [AdminCustomerController::class, 'show'])
+            ->name('customers.show');
+
+        Route::get('/customers/{user}/edit', [AdminCustomerController::class, 'edit'])
+            ->name('customers.edit');
+
+        Route::put('/customers/{user}', [AdminCustomerController::class, 'update'])
+            ->name('customers.update');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Orders
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/orders', [AdminOrderController::class, 'index'])
-                    ->name('orders.index');
+            ->name('orders.index');
 
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])
-                     ->name('orders.show');
-        Route::put('/orders/{order}', [AdminOrderController::class, 'update'])
-                    ->name('orders.update');
+            ->name('orders.show');
 
+        Route::put('/orders/{order}', [AdminOrderController::class, 'update'])
+            ->name('orders.update');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Riders
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/riders', [AdminRiderController::class, 'index'])
             ->name('riders.index');
@@ -161,6 +218,4 @@ Route::patch('/orders/{order}/payment', [RestaurantOrderController::class, 'upda
 
         Route::patch('/riders/{rider}/toggle', [AdminRiderController::class, 'toggle'])
             ->name('riders.toggle');
-
-            
     });
