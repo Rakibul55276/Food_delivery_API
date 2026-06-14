@@ -30,8 +30,11 @@ Route::prefix('customer')->group(function () {
     // PUBLIC CATALOG ROUTES
     Route::apiResource('restaurants', RestaurantController::class)->only(['index', 'show']);
     Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
-    Route::apiResource('food-items', FoodItemController::class)->only(['index', 'show']);
+
+    // IMPORTANT: custom route before apiResource
     Route::get('/restaurants/{restaurantId}/food-items', [FoodItemController::class, 'byRestaurant']);
+
+    Route::apiResource('food-items', FoodItemController::class)->only(['index', 'show']);
 
     // PROTECTED CUSTOMER ROUTES
     Route::middleware('auth:sanctum')->group(function () {
