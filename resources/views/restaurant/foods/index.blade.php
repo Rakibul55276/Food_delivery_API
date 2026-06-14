@@ -13,12 +13,7 @@
     </a>
 </div>
 
-{{-- Success Message --}}
-@if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
+
 
 {{-- Food Items Table --}}
 <table class="table table-bordered table-striped align-middle">
@@ -37,81 +32,76 @@
 
     <tbody>
 
-    @forelse($foods as $food)
+    <!-- @forelse($foods as $food) -->
 
-        <tr>
-            {{-- Food ID --}}
-            <td>{{ $food->id }}</td>
+       @forelse($foodsByCategory as $categoryName => $foods)
 
-            {{-- Food Name --}}
-            <td>{{ $food->name }}</td>
+    <tr class="table-primary">
+        <td colspan="8">
+            <strong>{{ $categoryName }}</strong>
+            ({{ $foods->count() }} Items)
+        </td>
+    </tr>
 
-            {{-- Food Description --}}
-            <td>{{ $food->description }}</td>
+    @foreach($foods as $food)
 
-            {{-- Regular Price --}}
-            <td>{{ number_format($food->price, 2) }}</td>
+    <tr>
+        <td>{{ $food->id }}</td>
+        <td>{{ $food->name }}</td>
+        <td>{{ $food->description }}</td>
+        <td>{{ number_format($food->price, 2) }}</td>
+        <td>
+            {{ $food->discount_price ? number_format($food->discount_price, 2) : '-' }}
+        </td>
 
-            {{-- Discount Price --}}
-            <td>
-                {{ $food->discount_price ? number_format($food->discount_price, 2) : '-' }}
-            </td>
+        <td>
+            @if($food->image)
+                <img
+                    src="{{ imageUrl($food->image) }}"
+                    alt="{{ $food->name }}"
+                    width="100"
+                    height="80"
+                    style="object-fit:cover;border-radius:8px;">
+            @endif
+        </td>
 
-            {{-- Food Image --}}
-            <td>
-                @if($food->image)
+        <td>{{ $food->category->name ?? '-' }}</td>
 
-                    {{-- 
-                        imageUrl() is your common helper.
-                        It supports:
-                        1. Cloudinary full URL
-                        2. Local storage path
-                    --}}
-                    <img
-                        src="{{ imageUrl($food->image) }}"
-                        alt="{{ $food->name }}"
-                        width="100"
-                        height="80"
-                        style="object-fit: cover; border-radius: 8px;"
-                    >
+        <td>
+            <a href="{{ route('restaurant.foods.edit', $food->id) }}"
+               class="btn btn-warning btn-sm">
+                Edit
+            </a>
 
-                @else
+            <form action="{{ route('restaurant.foods.destroy', $food->id) }}"
+                  method="POST"
+                  style="display:inline-block">
 
-                    {{-- If no image exists --}}
-                    <span class="text-muted">No Image</span>
+                @csrf
+                @method('DELETE')
 
-                @endif
-            </td>
+                <button
+                    type="submit"
+                    class="btn btn-danger btn-sm"
+                    onclick="return confirm('Delete this food item?')">
+                    Delete
+                </button>
 
-            {{-- Food Category --}}
-            <td>{{ $food->category->name ?? '-' }}</td>
+            </form>
+        </td>
+    </tr>
 
-            {{-- Actions --}}
-            <td>
-                {{-- Edit Button --}}
-                <a href="{{ route('restaurant.foods.edit', $food->id) }}"
-                   class="btn btn-warning btn-sm">
-                    Edit
-                </a>
+    @endforeach
 
-                {{-- Delete Form --}}
-                <form action="{{ route('restaurant.foods.destroy', $food->id) }}"
-                      method="POST"
-                      style="display:inline-block">
+@empty
 
-                    @csrf
-                    @method('DELETE')
+<tr>
+    <td colspan="8" class="text-center">
+        No food items found
+    </td>
+</tr>
 
-                    <button
-                        type="submit"
-                        class="btn btn-danger btn-sm"
-                        onclick="return confirm('Delete this food item?')">
-                        Delete
-                    </button>
-
-                </form>
-            </td>
-        </tr>
+@endforelse
 
     @empty
 

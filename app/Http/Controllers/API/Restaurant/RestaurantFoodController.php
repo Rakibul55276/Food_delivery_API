@@ -15,11 +15,15 @@ class RestaurantFoodController extends Controller
     {
         $restaurant = Restaurant::where('user_id', auth()->id())->first();
 
-        $foods = $restaurant
-            ? $restaurant->foodItems()->with('category')->latest()->get()
-            : collect();
+      $foodsByCategory = $restaurant
+    ? $restaurant->foodItems()
+        ->with('category')
+        ->latest()
+        ->get()
+        ->groupBy(fn ($food) => $food->category->name ?? 'Uncategorized')
+    : collect();
 
-        return view('restaurant.foods.index', compact('foods'));
+        return view('restaurant.foods.index', compact('foodsByCategory'));
     }
 
     public function create()
