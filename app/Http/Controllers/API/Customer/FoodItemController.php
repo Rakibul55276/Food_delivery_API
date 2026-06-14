@@ -10,23 +10,17 @@ use Illuminate\Http\Request;
 
 class FoodItemController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json([
-            'food_items' => FoodItem::with(['restaurant', 'category'])
-                ->where('is_available', true)
-                ->orderBy('category_id')
-                ->orderBy('name')
-                ->get()
-        ]);
-    }
+        $query = FoodItem::with(['restaurant', 'category'])
+            ->where('is_available', true);
 
-    public function byRestaurant($restaurantId)
-    {
+        if ($request->has('restaurant_id')) {
+            $query->where('restaurant_id', $request->restaurant_id);
+        }
+
         return response()->json([
-            'food_items' => FoodItem::with(['restaurant', 'category'])
-                ->where('restaurant_id', $restaurantId)
-                ->where('is_available', true)
+            'food_items' => $query
                 ->orderBy('category_id')
                 ->orderBy('name')
                 ->get()
@@ -80,8 +74,7 @@ class FoodItemController extends Controller
     public function show(string $id)
     {
         return response()->json([
-            'food_item' => FoodItem::with(['restaurant', 'category'])
-                ->findOrFail($id)
+            'food_item' => FoodItem::with(['restaurant', 'category'])->findOrFail($id)
         ]);
     }
 

@@ -17,7 +17,7 @@ use App\Http\Controllers\API\Rider\RiderLocationController;
 
 Route::get('/test', function () {
     return response()->json([
-        'status' => 'api ok'
+        'status' => 'api ok',
     ]);
 });
 
@@ -28,13 +28,20 @@ Route::prefix('customer')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 
     // PUBLIC CATALOG ROUTES
-    Route::apiResource('restaurants', RestaurantController::class)->only(['index', 'show']);
-    Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
+    Route::get('/restaurants', [RestaurantController::class, 'index']);
+    Route::get('/restaurants/{restaurant}', [RestaurantController::class, 'show']);
 
-    // IMPORTANT: custom route before apiResource
-    Route::get('/restaurants/{restaurantId}/food-items', [FoodItemController::class, 'byRestaurant']);
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
-    Route::apiResource('food-items', FoodItemController::class)->only(['index', 'show']);
+    // Food items
+    // All foods:
+    // /api/customer/food-items
+    //
+    // Restaurant foods:
+    // /api/customer/food-items?restaurant_id=1
+    Route::get('/food-items', [FoodItemController::class, 'index']);
+    Route::get('/food-items/{id}', [FoodItemController::class, 'show']);
 
     // PROTECTED CUSTOMER ROUTES
     Route::middleware('auth:sanctum')->group(function () {
