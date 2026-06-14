@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Cloudinary\Cloudinary;
 use Illuminate\Http\UploadedFile;
 
 class CloudinaryService
@@ -12,13 +13,24 @@ class CloudinaryService
             return null;
         }
 
-        $uploadedFile = cloudinary()->upload(
+        $cloudinary = new Cloudinary([
+            'cloud' => [
+                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+                'api_key'    => env('CLOUDINARY_API_KEY'),
+                'api_secret' => env('CLOUDINARY_API_SECRET'),
+            ],
+            'url' => [
+                'secure' => true,
+            ],
+        ]);
+
+        $uploaded = $cloudinary->uploadApi()->upload(
             $file->getRealPath(),
             [
                 'folder' => $folder,
             ]
         );
 
-        return $uploadedFile->getSecurePath();
+        return $uploaded['secure_url'] ?? null;
     }
 }
