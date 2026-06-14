@@ -63,9 +63,12 @@
         <label>Current Image</label><br>
 
         @if($food->image)
-            <img src="{{ asset('storage/' . $food->image) }}"
-                 width="120"
+
+        <img src="{{ imageUrl($food->image) }}" width="120"
                  class="mb-2">
+    >
+
+@endif
         @else
             <p>No image uploaded</p>
         @endif
