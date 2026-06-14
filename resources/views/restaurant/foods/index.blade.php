@@ -2,17 +2,27 @@
 
 @section('content')
 
+{{-- Page Header --}}
 <div class="d-flex justify-content-between mb-3">
     <h2>Food Items</h2>
 
+    {{-- Add Food Button --}}
     <a href="{{ route('restaurant.foods.create') }}"
        class="btn btn-primary">
-       Add Food
+        Add Food
     </a>
 </div>
 
-<table class="table table-bordered">
-    <thead>
+{{-- Success Message --}}
+@if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
+{{-- Food Items Table --}}
+<table class="table table-bordered table-striped align-middle">
+    <thead class="table-dark">
         <tr>
             <th>ID</th>
             <th>Name</th>
@@ -30,45 +40,84 @@
     @forelse($foods as $food)
 
         <tr>
+            {{-- Food ID --}}
             <td>{{ $food->id }}</td>
+
+            {{-- Food Name --}}
             <td>{{ $food->name }}</td>
+
+            {{-- Food Description --}}
             <td>{{ $food->description }}</td>
-            <td>{{ $food->price }}</td>
-            <td>{{ $food->discount_price }}</td>
+
+            {{-- Regular Price --}}
+            <td>{{ number_format($food->price, 2) }}</td>
+
+            {{-- Discount Price --}}
+            <td>
+                {{ $food->discount_price ? number_format($food->discount_price, 2) : '-' }}
+            </td>
+
+            {{-- Food Image --}}
             <td>
                 @if($food->image)
-                    <img src="{{ asset('storage/' . $food->image) }}" alt="{{ $food->name }}" width="100">
+
+                    {{-- 
+                        imageUrl() is your common helper.
+                        It supports:
+                        1. Cloudinary full URL
+                        2. Local storage path
+                    --}}
+                    <img
+                        src="{{ imageUrl($food->image) }}"
+                        alt="{{ $food->name }}"
+                        width="100"
+                        height="80"
+                        style="object-fit: cover; border-radius: 8px;"
+                    >
+
+                @else
+
+                    {{-- If no image exists --}}
+                    <span class="text-muted">No Image</span>
+
                 @endif
-            </td> 
+            </td>
+
+            {{-- Food Category --}}
             <td>{{ $food->category->name ?? '-' }}</td>
 
-<td>
-    <a href="{{ route('restaurant.foods.edit', $food->id) }}"
-       class="btn btn-warning btn-sm">
-        Edit
-    </a>
+            {{-- Actions --}}
+            <td>
+                {{-- Edit Button --}}
+                <a href="{{ route('restaurant.foods.edit', $food->id) }}"
+                   class="btn btn-warning btn-sm">
+                    Edit
+                </a>
 
-    <form action="{{ route('restaurant.foods.destroy', $food->id) }}"
-          method="POST"
-          style="display:inline-block">
+                {{-- Delete Form --}}
+                <form action="{{ route('restaurant.foods.destroy', $food->id) }}"
+                      method="POST"
+                      style="display:inline-block">
 
-        @csrf
-        @method('DELETE')
+                    @csrf
+                    @method('DELETE')
 
-        <button
-            onclick="return confirm('Delete this food item?')"
-            class="btn btn-danger btn-sm">
-            Delete
-        </button>
+                    <button
+                        type="submit"
+                        class="btn btn-danger btn-sm"
+                        onclick="return confirm('Delete this food item?')">
+                        Delete
+                    </button>
 
-    </form>
-</td>
+                </form>
+            </td>
         </tr>
 
     @empty
 
+        {{-- Empty State --}}
         <tr>
-            <td colspan="7">
+            <td colspan="8" class="text-center text-muted">
                 No food items found
             </td>
         </tr>
