@@ -197,16 +197,27 @@
                     <tr>
                         <td width="100">
 
-                                    @if(!empty($item->foodItem->image))
-                                        <img src="{{ asset('storage/'.$item->foodItem->image) }}"
-                                            width="70"
-                                            height="70"
-                                            style="object-fit:cover;border-radius:8px;">
-                                    @else
-                                        <img src="https://via.placeholder.com/70"
-                                            width="70"
-                                            height="70">
-                                    @endif
+                                 @if(!empty($item->foodItem->image))
+
+    <img
+        src="{{ imageUrl($item->foodItem->image) }}"
+        alt="{{ $item->foodItem->name ?? 'Food Item' }}"
+        width="70"
+        height="70"
+        class="border rounded"
+        style="object-fit:cover;"
+    >
+
+@else
+
+    <img
+        src="https://via.placeholder.com/70"
+        width="70"
+        height="70"
+        class="border rounded"
+    >
+
+@endif
 
                                 </td>
 
