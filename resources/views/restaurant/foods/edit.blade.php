@@ -68,7 +68,6 @@
                  class="mb-2">
     >
 
-@endif
         @else
             <p>No image uploaded</p>
         @endif
