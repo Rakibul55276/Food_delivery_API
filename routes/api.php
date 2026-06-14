@@ -31,6 +31,7 @@ Route::prefix('customer')->group(function () {
     Route::apiResource('restaurants', RestaurantController::class)->only(['index', 'show']);
     Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
     Route::apiResource('food-items', FoodItemController::class)->only(['index', 'show']);
+    Route::get('/restaurants/{restaurantId}/food-items', [FoodItemController::class, 'byRestaurant']);
 
     // PROTECTED CUSTOMER ROUTES
     Route::middleware('auth:sanctum')->group(function () {

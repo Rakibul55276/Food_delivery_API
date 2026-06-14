@@ -13,7 +13,23 @@ class FoodItemController extends Controller
     public function index()
     {
         return response()->json([
-            'food_items' => FoodItem::with(['restaurant', 'category'])->latest()->get()
+            'food_items' => FoodItem::with(['restaurant', 'category'])
+                ->where('is_available', true)
+                ->orderBy('category_id')
+                ->orderBy('name')
+                ->get()
+        ]);
+    }
+
+    public function byRestaurant($restaurantId)
+    {
+        return response()->json([
+            'food_items' => FoodItem::with(['restaurant', 'category'])
+                ->where('restaurant_id', $restaurantId)
+                ->where('is_available', true)
+                ->orderBy('category_id')
+                ->orderBy('name')
+                ->get()
         ]);
     }
 
@@ -53,6 +69,8 @@ class FoodItemController extends Controller
             'is_available' => $request->is_available ?? true,
         ]);
 
+        $foodItem->load(['restaurant', 'category']);
+
         return response()->json([
             'message' => 'Food item created successfully',
             'food_item' => $foodItem
@@ -62,13 +80,14 @@ class FoodItemController extends Controller
     public function show(string $id)
     {
         return response()->json([
-            'food_item' => FoodItem::with(['restaurant', 'category'])->findOrFail($id)
+            'food_item' => FoodItem::with(['restaurant', 'category'])
+                ->findOrFail($id)
         ]);
     }
 
     public function update(Request $request, string $id)
     {
-        $foodItem = FoodItem::findOrFail($id);
+        $foodItem = FoodItem::with('restaurant')->findOrFail($id);
 
         if ($foodItem->restaurant->user_id !== $request->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
@@ -83,6 +102,16 @@ class FoodItemController extends Controller
             'is_available' => 'nullable|boolean',
         ]);
 
+        if ($request->has('category_id')) {
+            $category = Category::findOrFail($request->category_id);
+
+            if ($category->restaurant_id != $foodItem->restaurant_id) {
+                return response()->json([
+                    'message' => 'Category does not belong to this restaurant'
+                ], 422);
+            }
+        }
+
         $foodItem->update($request->only([
             'category_id',
             'name',
@@ -92,6 +121,8 @@ class FoodItemController extends Controller
             'is_available',
         ]));
 
+        $foodItem->load(['restaurant', 'category']);
+
         return response()->json([
             'message' => 'Food item updated successfully',
             'food_item' => $foodItem
@@ -100,7 +131,7 @@ class FoodItemController extends Controller
 
     public function destroy(string $id)
     {
-        $foodItem = FoodItem::findOrFail($id);
+        $foodItem = FoodItem::with('restaurant')->findOrFail($id);
 
         if ($foodItem->restaurant->user_id !== request()->user()->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
