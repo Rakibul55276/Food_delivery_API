@@ -71,10 +71,19 @@
 
         <br>
 
-        @if($food->image)
-            <img src="{{ asset('storage/'.$food->image) }}"
-                 width="120">
-        @endif
+       @if($food->image)
+
+    {{-- Food Image Preview --}}
+    <img
+        src="{{ imageUrl($food->image) }}"
+        alt="{{ $food->name }}"
+        width="120"
+        height="100"
+        class="border rounded"
+        style="object-fit:cover;"
+    >
+
+@endif
 
     </div>
 

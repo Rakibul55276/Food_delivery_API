@@ -31,14 +31,27 @@
             <tr>
                 <td>{{ $restaurant->id }}</td>
 
-                <td>
-                    @if($restaurant->logo)
-                        <img src="{{ asset('storage/'.$restaurant->logo) }}"
-                             width="60">
-                    @else
-                        No Logo
-                    @endif
-                </td>
+              <td>
+    @if($restaurant->logo)
+
+        {{-- Works with both Cloudinary and Local Storage --}}
+        <img
+            src="{{ imageUrl($restaurant->logo) }}"
+            alt="{{ $restaurant->name }}"
+            width="60"
+            height="60"
+            class="rounded border"
+            style="object-fit:cover;"
+        >
+
+    @else
+
+        <span class="text-muted">
+            No Logo
+        </span>
+
+    @endif
+</td>
 
                 <td>{{ $restaurant->name }}</td>
 

@@ -52,12 +52,43 @@
                required>
     </div>
 
-    <div class="mb-3">
-        <label>Food Image</label>
-        <input type="file"
-               name="image"
-               class="form-control">
-    </div>
+   <div class="mb-3">
+
+    <label class="form-label">
+        Food Image
+    </label>
+
+    {{-- Current Image Preview --}}
+    @if(isset($food) && $food->image)
+
+        <div class="mb-2">
+
+            <img
+                src="{{ imageUrl($food->image) }}"
+                alt="{{ $food->name }}"
+                width="120"
+                height="100"
+                class="border rounded"
+                style="object-fit:cover;"
+            >
+
+        </div>
+
+    @endif
+
+    {{-- Upload New Image --}}
+    <input
+        type="file"
+        name="image"
+        class="form-control"
+        accept="image/*"
+    >
+
+    <small class="text-muted">
+        Leave empty to keep existing image.
+    </small>
+
+</div>
 
     <button type="submit"
             class="btn btn-success">

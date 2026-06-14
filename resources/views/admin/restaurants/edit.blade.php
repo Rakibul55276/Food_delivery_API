@@ -133,12 +133,26 @@
 
                 <label>Logo</label>
 
-                @if($restaurant->logo)
+                <!-- @if($restaurant->logo)
                     <br>
                     <img src="{{ asset('storage/'.$restaurant->logo) }}"
                          width="120"
                          class="mb-2">
-                @endif
+                @endif -->
+                @if($restaurant->logo)
+
+    <br>
+
+    {{-- Restaurant Logo --}}
+    <img
+        src="{{ imageUrl($restaurant->logo) }}"
+        alt="{{ $restaurant->name }}"
+        width="120"
+        class="mb-2 rounded border"
+        style="object-fit:cover;"
+    >
+
+@endif
 
                 <input type="file"
                        name="logo"

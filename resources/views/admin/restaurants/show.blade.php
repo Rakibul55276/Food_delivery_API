@@ -9,9 +9,18 @@
 
 <div class="card mb-4">
     <div class="card-body">
-        @if($restaurant->logo)
-            <img src="{{ asset('storage/'.$restaurant->logo) }}" width="100" class="mb-3">
-        @endif
+       @if($restaurant->logo)
+
+    {{-- Common image helper --}}
+    <img
+        src="{{ imageUrl($restaurant->logo) }}"
+        alt="{{ $restaurant->name }}"
+        width="100"
+        class="mb-3 rounded border"
+        style="object-fit:cover;"
+    >
+
+@endif
 
         <h4>{{ $restaurant->name }}</h4>
 
