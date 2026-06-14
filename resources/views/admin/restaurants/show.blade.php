@@ -4,23 +4,33 @@
 
 <h2>Restaurant Details</h2>
 
-<a href="{{ route('admin.restaurants.index') }}" class="btn btn-secondary btn-sm mb-3">Back</a>
-<a href="{{ route('admin.restaurants.edit', $restaurant->id) }}" class="btn btn-primary btn-sm mb-3">Edit Restaurant</a>
+<a href="{{ route('admin.restaurants.index') }}"
+   class="btn btn-secondary btn-sm mb-3">
+    Back
+</a>
 
+<a href="{{ route('admin.restaurants.edit', $restaurant->id) }}"
+   class="btn btn-primary btn-sm mb-3">
+    Edit Restaurant
+</a>
+
+{{-- Restaurant Information Card --}}
 <div class="card mb-4">
     <div class="card-body">
-       @if($restaurant->logo)
 
-    {{-- Common image helper --}}
-    <img
-        src="{{ imageUrl($restaurant->logo) }}"
-        alt="{{ $restaurant->name }}"
-        width="100"
-        class="mb-3 rounded border"
-        style="object-fit:cover;"
-    >
-
-@endif
+        {{-- Restaurant Logo --}}
+        @if($restaurant->logo)
+            <img
+                src="{{ imageUrl($restaurant->logo) }}"
+                alt="{{ $restaurant->name }}"
+                width="100"
+                height="100"
+                class="mb-3 rounded border"
+                style="object-fit:cover;"
+            >
+        @else
+            <p class="text-muted">No Logo</p>
+        @endif
 
         <h4>{{ $restaurant->name }}</h4>
 
@@ -34,6 +44,7 @@
 
         <p>
             <strong>Status:</strong>
+
             @if($restaurant->is_active)
                 <span class="badge bg-success">Active</span>
             @else
@@ -42,44 +53,54 @@
         </p>
     </div>
 </div>
+
+{{-- Add Category / Add Food Buttons --}}
 <div class="d-flex justify-content-between align-items-center mb-3">
+
     <a href="{{ route('admin.restaurants.categories.create', $restaurant->id) }}"
-   class="btn btn-success mb-3">
-    Add Category
-</a>
+       class="btn btn-success">
+        Add Category
+    </a>
 
     <a href="{{ route('admin.foods.create', $restaurant->id) }}"
        class="btn btn-success">
         Add Food Item
     </a>
+
 </div>
 
+{{-- Categories And Foods --}}
 @forelse($restaurant->categories as $category)
 
     <div class="card mb-3">
+
+        {{-- Category Header --}}
         <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
 
-    <span>{{ $category->name }}</span>
+            <span>{{ $category->name }}</span>
 
-    <form action="{{ route('admin.categories.destroy', $category->id) }}"
-          method="POST"
-          onsubmit="return confirm('Delete this category?')">
+            {{-- Delete Category --}}
+            <form action="{{ route('admin.categories.destroy', $category->id) }}"
+                  method="POST"
+                  onsubmit="return confirm('Delete this category?')">
 
-        @csrf
-        @method('DELETE')
+                @csrf
+                @method('DELETE')
 
-        <button class="btn btn-sm btn-danger">
-            Delete
-        </button>
+                <button type="submit" class="btn btn-sm btn-danger">
+                    Delete
+                </button>
 
-    </form>
+            </form>
 
-</div>
+        </div>
 
         <div class="card-body">
+
             @if($category->foodItems->count())
 
                 <table class="table table-bordered align-middle">
+
                     <thead>
                         <tr>
                             <th>Image</th>
@@ -92,21 +113,41 @@
                     </thead>
 
                     <tbody>
+
                         @foreach($category->foodItems as $food)
+
                             <tr>
+                                {{-- Food Image --}}
                                 <td>
                                     @if($food->image)
-                                        <img src="{{ asset('storage/'.$food->image) }}" width="70">
+                                        <img
+                                            src="{{ imageUrl($food->image) }}"
+                                            alt="{{ $food->name }}"
+                                            width="70"
+                                            height="60"
+                                            class="rounded border"
+                                            style="object-fit:cover;"
+                                        >
                                     @else
-                                        No image
+                                        <span class="text-muted">No image</span>
                                     @endif
                                 </td>
 
+                                {{-- Food Name --}}
                                 <td>{{ $food->name }}</td>
-                                <td>{{ $food->description }}</td>
-                                <td>SAR {{ $food->price }}</td>
-                                <td>{{ $food->discount_price ? 'SAR '.$food->discount_price : '-' }}</td>
 
+                                {{-- Description --}}
+                                <td>{{ $food->description }}</td>
+
+                                {{-- Price --}}
+                                <td>SAR {{ number_format($food->price, 2) }}</td>
+
+                                {{-- Discount Price --}}
+                                <td>
+                                    {{ $food->discount_price ? 'SAR '.number_format($food->discount_price, 2) : '-' }}
+                                </td>
+
+                                {{-- Actions --}}
                                 <td>
                                     <a href="{{ route('admin.foods.edit', $food->id) }}"
                                        class="btn btn-sm btn-primary">
@@ -116,24 +157,37 @@
                                     <form action="{{ route('admin.foods.destroy', $food->id) }}"
                                           method="POST"
                                           style="display:inline-block">
+
                                         @csrf
                                         @method('DELETE')
 
-                                        <button class="btn btn-sm btn-danger"
-                                                onclick="return confirm('Delete this food item?')">
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Delete this food item?')">
                                             Delete
                                         </button>
+
                                     </form>
                                 </td>
                             </tr>
+
                         @endforeach
+
                     </tbody>
+
                 </table>
 
             @else
-                <p class="mb-0">No food items in this category.</p>
+
+                <p class="mb-0 text-muted">
+                    No food items in this category.
+                </p>
+
             @endif
+
         </div>
+
     </div>
 
 @empty

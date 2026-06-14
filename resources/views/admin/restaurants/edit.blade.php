@@ -9,6 +9,16 @@
     Back
 </a>
 
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <form action="{{ route('admin.restaurants.update', $restaurant->id) }}"
       method="POST"
       enctype="multipart/form-data">
@@ -16,8 +26,8 @@
     @csrf
     @method('PUT')
 
-    <div class="card">
-
+    {{-- Owner Information --}}
+    <div class="card mb-3">
         <div class="card-header">
             Owner Information
         </div>
@@ -25,38 +35,36 @@
         <div class="card-body">
 
             <div class="mb-3">
-                <label>Owner Name</label>
+                <label class="form-label">Owner Name</label>
                 <input type="text"
                        name="owner_name"
                        class="form-control"
-                       value="{{ $restaurant->user->name ?? '' }}"
+                       value="{{ old('owner_name', $restaurant->user->name ?? '') }}"
                        required>
             </div>
 
             <div class="mb-3">
-                <label>Email</label>
+                <label class="form-label">Email</label>
                 <input type="email"
                        name="email"
                        class="form-control"
-                       value="{{ $restaurant->user->email ?? '' }}"
+                       value="{{ old('email', $restaurant->user->email ?? '') }}"
                        required>
             </div>
 
             <div class="mb-3">
-                <label>Phone</label>
+                <label class="form-label">Phone</label>
                 <input type="text"
                        name="phone"
                        class="form-control"
-                       value="{{ $restaurant->phone }}">
+                       value="{{ old('phone', $restaurant->phone) }}">
             </div>
 
         </div>
     </div>
 
-    <br>
-
+    {{-- Restaurant Information --}}
     <div class="card">
-
         <div class="card-header">
             Restaurant Information
         </div>
@@ -64,108 +72,100 @@
         <div class="card-body">
 
             <div class="mb-3">
-                <label>Restaurant Name</label>
+                <label class="form-label">Restaurant Name</label>
                 <input type="text"
                        name="name"
                        class="form-control"
-                       value="{{ $restaurant->name }}"
+                       value="{{ old('name', $restaurant->name) }}"
                        required>
             </div>
 
             <div class="mb-3">
-                <label>Description</label>
+                <label class="form-label">Description</label>
                 <textarea name="description"
                           class="form-control"
-                          rows="4">{{ $restaurant->description }}</textarea>
+                          rows="4">{{ old('description', $restaurant->description) }}</textarea>
             </div>
 
             <div class="mb-3">
-                <label>Address</label>
+                <label class="form-label">Address</label>
                 <textarea name="address"
                           class="form-control"
-                          rows="3">{{ $restaurant->address }}</textarea>
+                          rows="3">{{ old('address', $restaurant->address) }}</textarea>
             </div>
 
             <div class="row">
-
-                <div class="col-md-6">
-                    <label>Latitude</label>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Latitude</label>
                     <input type="text"
                            name="latitude"
                            class="form-control"
-                           value="{{ $restaurant->latitude }}">
+                           value="{{ old('latitude', $restaurant->latitude) }}">
                 </div>
 
-                <div class="col-md-6">
-                    <label>Longitude</label>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Longitude</label>
                     <input type="text"
                            name="longitude"
                            class="form-control"
-                           value="{{ $restaurant->longitude }}">
+                           value="{{ old('longitude', $restaurant->longitude) }}">
                 </div>
-
             </div>
 
-            <br>
-
             <div class="mb-3">
-
-                <label>Status</label>
+                <label class="form-label">Status</label>
 
                 <select name="is_active"
                         class="form-control">
 
                     <option value="1"
-                        {{ $restaurant->is_active ? 'selected' : '' }}>
+                        {{ old('is_active', $restaurant->is_active) == 1 ? 'selected' : '' }}>
                         Active
                     </option>
 
                     <option value="0"
-                        {{ !$restaurant->is_active ? 'selected' : '' }}>
+                        {{ old('is_active', $restaurant->is_active) == 0 ? 'selected' : '' }}>
                         Disabled
                     </option>
 
                 </select>
-
             </div>
 
             <div class="mb-3">
+                <label class="form-label">Logo</label>
 
-                <label>Logo</label>
-
-                <!-- @if($restaurant->logo)
-                    <br>
-                    <img src="{{ asset('storage/'.$restaurant->logo) }}"
-                         width="120"
-                         class="mb-2">
-                @endif -->
+                {{-- Current Logo Preview --}}
                 @if($restaurant->logo)
+                    <div class="mb-2">
+                        <img
+                            src="{{ imageUrl($restaurant->logo) }}"
+                            alt="{{ $restaurant->name }}"
+                            width="120"
+                            height="100"
+                            class="rounded border"
+                            style="object-fit:cover;"
+                        >
+                    </div>
+                @else
+                    <p class="text-muted mb-2">No logo uploaded.</p>
+                @endif
 
-    <br>
-
-    {{-- Restaurant Logo --}}
-    <img
-        src="{{ imageUrl($restaurant->logo) }}"
-        alt="{{ $restaurant->name }}"
-        width="120"
-        class="mb-2 rounded border"
-        style="object-fit:cover;"
-    >
-
-@endif
-
+                {{-- Upload New Logo --}}
                 <input type="file"
                        name="logo"
-                       class="form-control">
+                       class="form-control"
+                       accept="image/*">
 
+                <small class="text-muted">
+                    Leave empty to keep existing logo.
+                </small>
             </div>
 
-            <button class="btn btn-success">
+            <button type="submit" class="btn btn-success">
                 Update Restaurant
             </button>
 
         </div>
-
     </div>
 
 </form>
