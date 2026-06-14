@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\FoodItem;
 use App\Models\Category;
 use App\Models\Restaurant;
+use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class AdminFoodController extends Controller
@@ -37,7 +37,10 @@ class AdminFoodController extends Controller
         $imagePath = null;
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('foods', 'public');
+            $imagePath = CloudinaryService::upload(
+                $request->file('image'),
+                'food_delivery/foods'
+            );
         }
 
         FoodItem::create([
@@ -79,11 +82,10 @@ class AdminFoodController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            if ($food->image && Storage::disk('public')->exists($food->image)) {
-                Storage::disk('public')->delete($food->image);
-            }
-
-            $food->image = $request->file('image')->store('foods', 'public');
+            $food->image = CloudinaryService::upload(
+                $request->file('image'),
+                'food_delivery/foods'
+            );
         }
 
         $food->update([
@@ -102,10 +104,6 @@ class AdminFoodController extends Controller
 
     public function destroy(FoodItem $food)
     {
-        if ($food->image && Storage::disk('public')->exists($food->image)) {
-            Storage::disk('public')->delete($food->image);
-        }
-
         $restaurantId = $food->restaurant_id;
 
         $food->delete();
