@@ -66,7 +66,7 @@
 
         <img src="{{ imageUrl($food->image) }}" width="120"
                  class="mb-2">
-    >
+    
 
         @else
             <p>No image uploaded</p>
