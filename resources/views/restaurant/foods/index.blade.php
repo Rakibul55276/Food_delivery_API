@@ -13,8 +13,6 @@
     </a>
 </div>
 
-
-
 {{-- Food Items Table --}}
 <table class="table table-bordered table-striped align-middle">
     <thead class="table-dark">
@@ -32,76 +30,83 @@
 
     <tbody>
 
-    <!-- @forelse($foods as $food) -->
+    {{-- Group foods by category --}}
+    @forelse($foodsByCategory as $categoryName => $foods)
 
-       @forelse($foodsByCategory as $categoryName => $foods)
+        {{-- Category Header Row --}}
+        <tr class="table-primary">
+            <td colspan="8">
+                <strong>{{ $categoryName }}</strong>
+                <span class="text-muted">
+                    ({{ $foods->count() }} Items)
+                </span>
+            </td>
+        </tr>
 
-    <tr class="table-primary">
-        <td colspan="8">
-            <strong>{{ $categoryName }}</strong>
-            ({{ $foods->count() }} Items)
-        </td>
-    </tr>
+        {{-- Foods under this category --}}
+        @foreach($foods as $food)
 
-    @foreach($foods as $food)
+            <tr>
+                {{-- Food ID --}}
+                <td>{{ $food->id }}</td>
 
-    <tr>
-        <td>{{ $food->id }}</td>
-        <td>{{ $food->name }}</td>
-        <td>{{ $food->description }}</td>
-        <td>{{ number_format($food->price, 2) }}</td>
-        <td>
-            {{ $food->discount_price ? number_format($food->discount_price, 2) : '-' }}
-        </td>
+                {{-- Food Name --}}
+                <td>{{ $food->name }}</td>
 
-        <td>
-            @if($food->image)
-                <img
-                    src="{{ imageUrl($food->image) }}"
-                    alt="{{ $food->name }}"
-                    width="100"
-                    height="80"
-                    style="object-fit:cover;border-radius:8px;">
-            @endif
-        </td>
+                {{-- Food Description --}}
+                <td>{{ $food->description }}</td>
 
-        <td>{{ $food->category->name ?? '-' }}</td>
+                {{-- Price --}}
+                <td>{{ number_format($food->price, 2) }}</td>
 
-        <td>
-            <a href="{{ route('restaurant.foods.edit', $food->id) }}"
-               class="btn btn-warning btn-sm">
-                Edit
-            </a>
+                {{-- Discount Price --}}
+                <td>
+                    {{ $food->discount_price ? number_format($food->discount_price, 2) : '-' }}
+                </td>
 
-            <form action="{{ route('restaurant.foods.destroy', $food->id) }}"
-                  method="POST"
-                  style="display:inline-block">
+                {{-- Image --}}
+                <td>
+                    @if($food->image)
+                        <img
+                            src="{{ imageUrl($food->image) }}"
+                            alt="{{ $food->name }}"
+                            width="100"
+                            height="80"
+                            style="object-fit:cover;border-radius:8px;"
+                        >
+                    @else
+                        <span class="text-muted">No Image</span>
+                    @endif
+                </td>
 
-                @csrf
-                @method('DELETE')
+                {{-- Category --}}
+                <td>{{ $food->category->name ?? '-' }}</td>
 
-                <button
-                    type="submit"
-                    class="btn btn-danger btn-sm"
-                    onclick="return confirm('Delete this food item?')">
-                    Delete
-                </button>
+                {{-- Actions --}}
+                <td>
+                    <a href="{{ route('restaurant.foods.edit', $food->id) }}"
+                       class="btn btn-warning btn-sm">
+                        Edit
+                    </a>
 
-            </form>
-        </td>
-    </tr>
+                    <form action="{{ route('restaurant.foods.destroy', $food->id) }}"
+                          method="POST"
+                          style="display:inline-block">
 
-    @endforeach
+                        @csrf
+                        @method('DELETE')
 
-@empty
+                        <button
+                            type="submit"
+                            class="btn btn-danger btn-sm"
+                            onclick="return confirm('Delete this food item?')">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
 
-<tr>
-    <td colspan="8" class="text-center">
-        No food items found
-    </td>
-</tr>
-
-@endforelse
+        @endforeach
 
     @empty
 
