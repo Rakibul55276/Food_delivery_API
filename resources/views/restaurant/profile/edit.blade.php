@@ -79,11 +79,17 @@
     <div class="mb-3">
         <label>Logo</label><br>
 
-        @if($restaurant->logo)
-            <img src="{{ asset('storage/'.$restaurant->logo) }}"
-                 width="100"
-                 class="mb-2">
-        @endif
+       @if($restaurant->logo)
+
+    {{-- Common Image Helper --}}
+    <img
+        src="{{ imageUrl($restaurant->logo) }}"
+        alt="Restaurant Logo"
+        width="100"
+        class="mb-2 rounded border"
+    >
+
+@endif
 
         <input type="file"
                name="logo"
@@ -94,10 +100,16 @@
         <label>Cover Image</label><br>
 
         @if($restaurant->cover_image)
-            <img src="{{ asset('storage/'.$restaurant->cover_image) }}"
-                 width="200"
-                 class="mb-2">
-        @endif
+
+    {{-- Common Image Helper --}}
+    <img
+        src="{{ imageUrl($restaurant->cover_image) }}"
+        alt="Cover Image"
+        width="200"
+        class="mb-2 rounded border"
+    >
+
+@endif
 
         <input type="file"
                name="cover_image"
