@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Restaurant;
 use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use Illuminate\Http\Request;
+use App\Services\CloudinaryService;
 
 class RestaurantProfileController extends Controller
 {
@@ -31,11 +32,17 @@ class RestaurantProfileController extends Controller
         ]);
 
         if ($request->hasFile('logo')) {
-            $restaurant->logo = $request->file('logo')->store('restaurants', 'public');
+            $restaurant->logo = CloudinaryService::upload(
+    $request->file('logo'),
+    'food_delivery/restaurants'
+);
         }
 
         if ($request->hasFile('cover_image')) {
-            $restaurant->cover_image = $request->file('cover_image')->store('restaurants/covers', 'public');
+            $restaurant->cover_image = CloudinaryService::upload(
+    $request->file('cover_image'),
+    'food_delivery/restaurants/covers'
+);
         }
 
         $restaurant->update([

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Models\FoodItem;
 use App\Models\Category;
+use App\Services\CloudinaryService;
 
 class RestaurantFoodController extends Controller
 {
@@ -56,7 +57,10 @@ class RestaurantFoodController extends Controller
         $imagePath = null;
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('foods', 'public');
+            $imagePath = CloudinaryService::upload(
+                $request->file('image'),
+                'food_delivery/foods'
+            );
         }
 
         FoodItem::create([
@@ -104,7 +108,10 @@ class RestaurantFoodController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $food->image = $request->file('image')->store('foods', 'public');
+            $food->image = CloudinaryService::upload(
+                $request->file('image'),
+                'food_delivery/foods'
+            );
         }
 
         $food->update([
