@@ -6,6 +6,7 @@ use App\Models\Rider;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Google\Auth\Credentials\ServiceAccountCredentials;
+use Illuminate\Support\Facades\Log;
 
 class FirebaseNotificationService
 {
