@@ -71,11 +71,11 @@ Route::prefix('rider')->group(function () {
         Route::get('/profile', [RiderProfileController::class, 'show']);
         Route::put('/profile', [RiderProfileController::class, 'update']);
 
-        Route::get('/orders', [RiderOrderController::class, 'index']);
+       Route::get('/orders', [RiderOrderController::class, 'index']);
         Route::get('/orders/{id}', [RiderOrderController::class, 'show']);
-        Route::patch('/orders/{id}/status', [RiderOrderController::class, 'updateStatus']);
         Route::patch('/orders/{id}/accept', [RiderOrderController::class, 'accept']);
         Route::patch('/orders/{id}/decline', [RiderOrderController::class, 'decline']);
+        Route::patch('/orders/{id}/status', [RiderOrderController::class, 'updateStatus']);
 
         Route::post('/location', [RiderLocationController::class, 'update']);
     });

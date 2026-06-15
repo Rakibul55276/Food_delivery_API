@@ -191,20 +191,32 @@ class RiderOrderController extends Controller
         ]);
     }
 
-    public function decline(Request $request, $id)
+public function decline(Request $request, $id)
 {
     $rider = $request->user()->rider;
 
-    $order = Order::findOrFail($id);
-
-    if ($order->rider_status !== 'waiting_rider') {
+    if (!$rider) {
         return response()->json([
-            'message' => 'Order no longer available'
-        ], 422);
+            'message' => 'Rider profile not found'
+        ], 404);
     }
 
+    $order = Order::where('id', $id)
+        ->where('order_status', 'accepted')
+        ->where(function ($query) use ($rider) {
+            $query->where(function ($q) {
+                $q->whereNull('rider_id')
+                  ->where('rider_status', 'waiting_rider');
+            })
+            ->orWhere(function ($q) use ($rider) {
+                $q->where('rider_id', $rider->id)
+                  ->where('rider_status', 'assigned');
+            });
+        })
+        ->firstOrFail();
+
     return response()->json([
-        'message' => 'Order declined'
+        'message' => 'Order declined successfully'
     ]);
 }
 }
