@@ -77,6 +77,14 @@ class RestaurantOrderController extends Controller
 
         $order->save();
 
+        \Log::error('TEST AFTER ORDER SAVE', [
+    'order_id' => $order->id,
+    'next' => $next,
+    'rider_id' => $order->rider_id,
+    'rider_status' => $order->rider_status,
+    'sendRiderNotification' => $sendRiderNotification,
+]);
+
         if ($sendRiderNotification) {
             FirebaseNotificationService::sendNewOrderToActiveRiders($order);
         }
