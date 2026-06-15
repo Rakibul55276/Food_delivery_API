@@ -19,12 +19,15 @@ class FirebaseNotificationService
         $credentialsPath = storage_path('app/firebase/firebase-service-account.json');
 
         // Check service account file exists
-        if (!file_exists($credentialsPath)) {
-            Log::error('Firebase service account file not found', [
-                'path' => $credentialsPath,
-            ]);
-            return;
-        }
+     Log::error('CHECK FIREBASE FILE', [
+    'path' => $credentialsPath,
+    'exists' => file_exists($credentialsPath),
+]);
+
+if (!file_exists($credentialsPath)) {
+    Log::error('Firebase service account file not found');
+    return;
+}
 
         try {
 
