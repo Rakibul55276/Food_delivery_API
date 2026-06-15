@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Restaurant;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Restaurant;
+use App\Services\FirebaseNotificationService;
 use Illuminate\Http\Request;
 
 class RestaurantOrderController extends Controller
@@ -59,11 +60,14 @@ class RestaurantOrderController extends Controller
             return back()->with('error', 'Invalid status sequence.');
         }
 
+        $sendRiderNotification = false;
+
         $order->order_status = $next;
 
         if ($next === 'accepted') {
             if (!$order->rider_id) {
                 $order->rider_status = 'waiting_rider';
+                $sendRiderNotification = true;
             }
         }
 
@@ -72,6 +76,10 @@ class RestaurantOrderController extends Controller
         }
 
         $order->save();
+
+        if ($sendRiderNotification) {
+            FirebaseNotificationService::sendNewOrderToActiveRiders($order);
+        }
 
         return back()->with('success', 'Order status updated successfully.');
     }
