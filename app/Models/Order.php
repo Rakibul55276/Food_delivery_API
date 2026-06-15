@@ -45,9 +45,8 @@ class Order extends Model
         return $this->belongsTo(Restaurant::class);
     }
 
-    public function rider()
-    {
-        return $this->belongsTo(User::class, 'rider_id');
-    }
-
+  public function rider()
+{
+    return $this->belongsTo(Rider::class, 'rider_id');
+}
 }
