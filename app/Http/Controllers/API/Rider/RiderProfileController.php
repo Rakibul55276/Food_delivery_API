@@ -30,4 +30,27 @@ class RiderProfileController extends Controller
             'message' => 'Profile updated successfully'
         ]);
     }
+
+    public function updateFcmToken(Request $request)
+{
+    $request->validate([
+        'fcm_token' => 'required|string',
+    ]);
+
+    $rider = $request->user()->rider;
+
+    if (!$rider) {
+        return response()->json([
+            'message' => 'Rider profile not found'
+        ], 404);
+    }
+
+    $rider->update([
+        'fcm_token' => $request->fcm_token,
+    ]);
+
+    return response()->json([
+        'message' => 'FCM token updated successfully'
+    ]);
+}
 }

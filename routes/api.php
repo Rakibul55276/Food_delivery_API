@@ -61,6 +61,7 @@ Route::prefix('customer')->group(function () {
 });
 
 // RIDER API
+// RIDER API
 Route::prefix('rider')->group(function () {
 
     Route::post('/register', [RiderAuthController::class, 'register']);
@@ -68,10 +69,12 @@ Route::prefix('rider')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
 
+        Route::post('/fcm-token', [RiderProfileController::class, 'updateFcmToken']);
+
         Route::get('/profile', [RiderProfileController::class, 'show']);
         Route::put('/profile', [RiderProfileController::class, 'update']);
 
-       Route::get('/orders', [RiderOrderController::class, 'index']);
+        Route::get('/orders', [RiderOrderController::class, 'index']);
         Route::get('/orders/{id}', [RiderOrderController::class, 'show']);
         Route::patch('/orders/{id}/accept', [RiderOrderController::class, 'accept']);
         Route::patch('/orders/{id}/decline', [RiderOrderController::class, 'decline']);

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\API\Rider;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\RiderOrderDecline;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RiderOrderController extends Controller
 {
@@ -18,39 +20,44 @@ class RiderOrderController extends Controller
             ]);
         }
 
+        $declinedOrderIds = RiderOrderDecline::where('rider_id', $rider->id)
+            ->pluck('order_id')
+            ->toArray();
+
         $orders = Order::with([
             'user',
             'restaurant',
             'items.foodItem'
         ])
-        ->where(function ($query) use ($rider) {
+            ->where(function ($query) use ($rider, $declinedOrderIds) {
 
-            // Orders available for all active riders
-            $query->where(function ($q) {
-                $q->whereNull('rider_id')
-                  ->where('order_status', 'accepted')
-                  ->where('rider_status', 'waiting_rider');
+                $query->where(function ($q) use ($declinedOrderIds) {
+                    $q->whereNull('rider_id')
+                        ->where('order_status', 'accepted')
+                        ->where('rider_status', 'waiting_rider');
+
+                    if (!empty($declinedOrderIds)) {
+                        $q->whereNotIn('id', $declinedOrderIds);
+                    }
+                })
+
+                ->orWhere(function ($q) use ($rider) {
+                    $q->where('rider_id', $rider->id)
+                        ->where('rider_status', 'assigned')
+                        ->whereIn('order_status', ['accepted', 'ready']);
+                })
+
+                ->orWhere(function ($q) use ($rider) {
+                    $q->where('rider_id', $rider->id)
+                        ->whereIn('rider_status', [
+                            'accepted',
+                            'picked_up',
+                            'on_the_way'
+                        ]);
+                });
             })
-
-            // Orders manually assigned to this rider by admin
-            ->orWhere(function ($q) use ($rider) {
-                $q->where('rider_id', $rider->id)
-                  ->where('rider_status', 'assigned')
-                  ->whereIn('order_status', ['accepted', 'ready']);
-            })
-
-            // Orders already accepted by this rider
-            ->orWhere(function ($q) use ($rider) {
-                $q->where('rider_id', $rider->id)
-                  ->whereIn('rider_status', [
-                      'accepted',
-                      'picked_up',
-                      'on_the_way'
-                  ]);
-            });
-        })
-        ->latest()
-        ->get();
+            ->latest()
+            ->get();
 
         return response()->json([
             'orders' => $orders
@@ -67,16 +74,26 @@ class RiderOrderController extends Controller
             ], 404);
         }
 
+        $declined = RiderOrderDecline::where('rider_id', $rider->id)
+            ->where('order_id', $id)
+            ->exists();
+
+        if ($declined) {
+            return response()->json([
+                'message' => 'Order declined by this rider'
+            ], 403);
+        }
+
         $order = Order::with([
             'user',
             'restaurant',
             'items.foodItem'
         ])
-        ->where(function ($query) use ($rider) {
-            $query->whereNull('rider_id')
-                ->orWhere('rider_id', $rider->id);
-        })
-        ->findOrFail($id);
+            ->where(function ($query) use ($rider) {
+                $query->whereNull('rider_id')
+                    ->orWhere('rider_id', $rider->id);
+            })
+            ->findOrFail($id);
 
         return response()->json([
             'order' => $order
@@ -93,36 +110,71 @@ class RiderOrderController extends Controller
             ], 422);
         }
 
+        $alreadyDeclined = RiderOrderDecline::where('order_id', $id)
+            ->where('rider_id', $rider->id)
+            ->exists();
+
+        if ($alreadyDeclined) {
+            return response()->json([
+                'message' => 'You already declined this order'
+            ], 422);
+        }
+
+        return DB::transaction(function () use ($rider, $id) {
+            $order = Order::where('id', $id)
+                ->where('order_status', 'accepted')
+                ->where(function ($query) use ($rider) {
+                    $query->where(function ($q) {
+                        $q->whereNull('rider_id')
+                            ->where('rider_status', 'waiting_rider');
+                    })
+                    ->orWhere(function ($q) use ($rider) {
+                        $q->where('rider_id', $rider->id)
+                            ->where('rider_status', 'assigned');
+                    });
+                })
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $order->update([
+                'rider_id' => $rider->id,
+                'rider_status' => 'accepted',
+            ]);
+
+            return response()->json([
+                'message' => 'Order accepted successfully',
+                'order' => $order->load([
+                    'user',
+                    'restaurant',
+                    'items.foodItem'
+                ])
+            ]);
+        });
+    }
+
+    public function decline(Request $request, $id)
+    {
+        $rider = $request->user()->rider;
+
+        if (!$rider) {
+            return response()->json([
+                'message' => 'Rider profile not found'
+            ], 404);
+        }
+
         $order = Order::where('id', $id)
             ->where('order_status', 'accepted')
-            ->where(function ($query) use ($rider) {
-
-                // Open order for all riders
-                $query->where(function ($q) {
-                    $q->whereNull('rider_id')
-                      ->where('rider_status', 'waiting_rider');
-                })
-
-                // Manually assigned order
-                ->orWhere(function ($q) use ($rider) {
-                    $q->where('rider_id', $rider->id)
-                      ->where('rider_status', 'assigned');
-                });
-            })
+            ->whereNull('rider_id')
+            ->where('rider_status', 'waiting_rider')
             ->firstOrFail();
 
-        $order->update([
+        RiderOrderDecline::firstOrCreate([
+            'order_id' => $order->id,
             'rider_id' => $rider->id,
-            'rider_status' => 'accepted',
         ]);
 
         return response()->json([
-            'message' => 'Order accepted successfully',
-            'order' => $order->load([
-                'user',
-                'restaurant',
-                'items.foodItem'
-            ])
+            'message' => 'Order declined successfully'
         ]);
     }
 
@@ -190,33 +242,4 @@ class RiderOrderController extends Controller
             ])
         ]);
     }
-
-public function decline(Request $request, $id)
-{
-    $rider = $request->user()->rider;
-
-    if (!$rider) {
-        return response()->json([
-            'message' => 'Rider profile not found'
-        ], 404);
-    }
-
-    $order = Order::where('id', $id)
-        ->where('order_status', 'accepted')
-        ->where(function ($query) use ($rider) {
-            $query->where(function ($q) {
-                $q->whereNull('rider_id')
-                  ->where('rider_status', 'waiting_rider');
-            })
-            ->orWhere(function ($q) use ($rider) {
-                $q->where('rider_id', $rider->id)
-                  ->where('rider_status', 'assigned');
-            });
-        })
-        ->firstOrFail();
-
-    return response()->json([
-        'message' => 'Order declined successfully'
-    ]);
-}
 }
