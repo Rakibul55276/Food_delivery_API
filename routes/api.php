@@ -63,6 +63,7 @@ Route::prefix('customer')->group(function () {
 // RIDER API
 Route::prefix('rider')->group(function () {
 
+    Route::post('/register', [RiderAuthController::class, 'register']);
     Route::post('/login', [RiderAuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {

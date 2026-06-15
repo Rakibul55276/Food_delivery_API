@@ -9,11 +9,37 @@ use Illuminate\Support\Facades\Hash;
 
 class RiderAuthController extends Controller
 {
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'required|string|max:20',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
+            'role' => 'rider',
+        ]);
+
+        $token = $user->createToken('rider-token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Rider registered successfully',
+            'token' => $token,
+            'user' => $user,
+        ], 201);
+    }
+
     public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
         $user = User::where('email', $request->email)
@@ -22,7 +48,7 @@ class RiderAuthController extends Controller
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials',
             ], 401);
         }
 
@@ -30,7 +56,7 @@ class RiderAuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user' => $user
+            'user' => $user,
         ]);
     }
 }
