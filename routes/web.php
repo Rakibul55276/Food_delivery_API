@@ -145,8 +145,8 @@ Route::patch('/orders/{order}/payment', [RestaurantOrderController::class, 'upda
                      ->name('orders.show');
         Route::put('/orders/{order}', [AdminOrderController::class, 'update'])
                     ->name('orders.update');
-                    Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])
-    ->name('admin.orders.destroy');
+                   Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])
+    ->name('orders.destroy');
 
 
         Route::get('/riders', [AdminRiderController::class, 'index'])

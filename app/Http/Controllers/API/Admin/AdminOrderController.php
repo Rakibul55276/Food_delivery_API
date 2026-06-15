@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\User;
 use App\Models\Rider;
 use Illuminate\Http\Request;
 
@@ -13,7 +12,7 @@ class AdminOrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::with(['user', 'restaurant'])
+        $orders = Order::with(['user', 'restaurant', 'rider.user'])
             ->latest()
             ->paginate(10);
 
@@ -25,12 +24,13 @@ class AdminOrderController extends Controller
         $order->load([
             'user',
             'restaurant',
-            'items.foodItem'
+            'items.foodItem',
+            'rider.user',
         ]);
 
         $riders = Rider::with('user')
-    ->where('is_available', 1)
-    ->get();
+            ->where('is_available', 1)
+            ->get();
 
         return view('admin.orders.show', compact('order', 'riders'));
     }
@@ -41,16 +41,13 @@ class AdminOrderController extends Controller
             'order_status' => 'required',
             'payment_status' => 'required',
             'payment_method' => 'required',
-
             'delivery_address' => 'nullable|string',
             'latitude' => 'nullable',
             'longitude' => 'nullable',
-
             'delivery_fee' => 'required|numeric|min:0',
             'discount' => 'required|numeric|min:0',
             'tax' => 'required|numeric|min:0',
             'rider_id' => 'nullable|exists:riders,id',
-
             'items' => 'required|array',
             'items.*.id' => 'required|exists:order_items,id',
             'items.*.price' => 'required|numeric|min:0',
@@ -68,10 +65,11 @@ class AdminOrderController extends Controller
             $quantity = (int) $itemData['quantity'];
             $itemTotal = $price * $quantity;
 
-            $item->price = $price;
-            $item->quantity = $quantity;
-            $item->total = $itemTotal;
-            $item->save();
+            $item->update([
+                'price' => $price,
+                'quantity' => $quantity,
+                'total' => $itemTotal,
+            ]);
 
             $subtotal += $itemTotal;
         }
@@ -80,11 +78,7 @@ class AdminOrderController extends Controller
         $discount = (float) $request->discount;
         $tax = (float) $request->tax;
 
-        $totalAmount = $subtotal + $deliveryFee + $tax - $discount;
-
-        if ($totalAmount < 0) {
-            $totalAmount = 0;
-        }
+        $totalAmount = max(0, $subtotal + $deliveryFee + $tax - $discount);
 
         $order->order_status = $request->order_status;
         $order->payment_status = $request->payment_status;
@@ -97,15 +91,24 @@ class AdminOrderController extends Controller
         $order->discount = $discount;
         $order->tax = $tax;
         $order->total_amount = $totalAmount;
-        $order->rider_id = $request->rider_id;
 
-if ($request->rider_id) {
-    if ($order->rider_status === null) {
-        $order->rider_status = 'assigned';
-    }
-} else {
-    $order->rider_status = null;
-}
+        if ($request->filled('rider_id')) {
+            $order->rider_id = $request->rider_id;
+            $order->rider_status = 'assigned';
+
+            if ($order->order_status === 'pending') {
+                $order->order_status = 'accepted';
+            }
+        } else {
+            $order->rider_id = null;
+
+            if ($order->order_status === 'accepted') {
+                $order->rider_status = 'waiting_rider';
+            } else {
+                $order->rider_status = null;
+            }
+        }
+
         $order->save();
 
         return redirect()
@@ -113,13 +116,13 @@ if ($request->rider_id) {
             ->with('success', 'Order updated successfully.');
     }
 
-
     public function destroy(Order $order)
-{
-    $order->delete();
+    {
+        $order->items()->delete();
+        $order->delete();
 
-    return redirect()
-        ->route('admin.orders.index')
-        ->with('success', 'Order deleted successfully.');
-}
+        return redirect()
+            ->route('admin.orders.index')
+            ->with('success', 'Order deleted successfully.');
+    }
 }
