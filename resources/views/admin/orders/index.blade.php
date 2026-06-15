@@ -58,12 +58,26 @@
     </span>
 </td>
                     <td>{{ $order->created_at->format('d M Y') }}</td>
-                    <td>
-                        <a href="{{ route('admin.orders.show', $order->id) }}"
-                           class="btn btn-sm btn-primary">
-                            View
-                        </a>
-                    </td>
+                   <td>
+    <a href="{{ route('admin.orders.show', $order->id) }}"
+       class="btn btn-sm btn-primary">
+        View
+    </a>
+
+    <form action="{{ route('admin.orders.destroy', $order->id) }}"
+          method="POST"
+          style="display:inline-block;"
+          onsubmit="return confirm('Are you sure you want to delete this order?');">
+
+        @csrf
+        @method('DELETE')
+
+        <button type="submit"
+                class="btn btn-sm btn-danger">
+            Delete
+        </button>
+    </form>
+</td>
                 </tr>
             @empty
                 <tr>

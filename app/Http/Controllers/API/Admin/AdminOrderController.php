@@ -112,4 +112,14 @@ if ($request->rider_id) {
             ->route('admin.orders.show', $order->id)
             ->with('success', 'Order updated successfully.');
     }
+
+
+    public function destroy(Order $order)
+{
+    $order->delete();
+
+    return redirect()
+        ->route('admin.orders.index')
+        ->with('success', 'Order deleted successfully.');
+}
 }
