@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\User;
 use App\Models\Rider;
 use Illuminate\Http\Request;
 
@@ -13,7 +12,7 @@ class AdminOrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::with(['user', 'restaurant'])
+        $orders = Order::with(['user', 'restaurant', 'rider.user'])
             ->latest()
             ->paginate(10);
 
@@ -25,14 +24,31 @@ class AdminOrderController extends Controller
         $order->load([
             'user',
             'restaurant',
-            'items.foodItem'
+            'items.foodItem',
+            'rider.user',
         ]);
 
         $riders = Rider::with('user')
-    ->where('is_available', 1)
-    ->get();
+            ->where('is_available', 1)
+            ->get();
 
         return view('admin.orders.show', compact('order', 'riders'));
+    }
+
+    public function edit(Order $order)
+    {
+        $order->load([
+            'user',
+            'restaurant',
+            'items.foodItem',
+            'rider.user',
+        ]);
+
+        $riders = Rider::with('user')
+            ->where('is_available', 1)
+            ->get();
+
+        return view('admin.orders.edit', compact('order', 'riders'));
     }
 
     public function update(Request $request, Order $order)
@@ -99,13 +115,14 @@ class AdminOrderController extends Controller
         $order->total_amount = $totalAmount;
         $order->rider_id = $request->rider_id;
 
-if ($request->rider_id) {
-    if ($order->rider_status === null) {
-        $order->rider_status = 'assigned';
-    }
-} else {
-    $order->rider_status = null;
-}
+        if ($request->rider_id) {
+            if ($order->rider_status === null) {
+                $order->rider_status = 'assigned';
+            }
+        } else {
+            $order->rider_status = null;
+        }
+
         $order->save();
 
         return redirect()
