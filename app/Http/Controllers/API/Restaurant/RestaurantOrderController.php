@@ -7,7 +7,6 @@ use App\Models\Order;
 use App\Models\Restaurant;
 use Illuminate\Http\Request;
 
-
 class RestaurantOrderController extends Controller
 {
     public function index()
@@ -15,76 +14,88 @@ class RestaurantOrderController extends Controller
         $restaurant = Restaurant::where('user_id', auth()->id())->firstOrFail();
 
         $orders = Order::where('restaurant_id', $restaurant->id)
-            ->with('items.foodItem', 'user')
+            ->with(['items.foodItem', 'user', 'rider.user'])
             ->latest()
             ->get();
 
         return view('restaurant.orders.index', compact('orders'));
     }
 
-public function updateStatus(Request $request, Order $order)
-{
-    $request->validate([
-        'order_status' => 'required|in:accepted,preparing,ready,cancelled',
-    ]);
+    public function show(Order $order)
+    {
+        $restaurant = Restaurant::where('user_id', auth()->id())->firstOrFail();
 
-    $current = $order->order_status;
-    $next = $request->order_status;
-
-    $allowed = [
-        'pending' => ['accepted', 'cancelled'],
-        'accepted' => ['preparing', 'cancelled'],
-        'preparing' => ['ready'],
-    ];
-
-    if (!isset($allowed[$current]) || !in_array($next, $allowed[$current])) {
-        return back()->with('error', 'Invalid status sequence.');
-    }
-
-    $order->order_status = $next;
-
-    if ($next === 'accepted') {
-        if (!$order->rider_id) {
-            $order->rider_status = 'waiting_rider';
+        if ($order->restaurant_id !== $restaurant->id) {
+            abort(403);
         }
+
+        $order->load(['items.foodItem', 'user', 'rider.user']);
+
+        return view('restaurant.orders.show', compact('order'));
     }
 
-    if ($next === 'cancelled') {
-        $order->rider_status = 'cancelled';
+    public function updateStatus(Request $request, Order $order)
+    {
+        $restaurant = Restaurant::where('user_id', auth()->id())->firstOrFail();
+
+        if ($order->restaurant_id !== $restaurant->id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'order_status' => 'required|in:accepted,preparing,ready,cancelled',
+        ]);
+
+        $current = $order->order_status;
+        $next = $request->order_status;
+
+        $allowed = [
+            'pending' => ['accepted', 'cancelled'],
+            'accepted' => ['preparing', 'cancelled'],
+            'preparing' => ['ready'],
+        ];
+
+        if (!isset($allowed[$current]) || !in_array($next, $allowed[$current])) {
+            return back()->with('error', 'Invalid status sequence.');
+        }
+
+        $order->order_status = $next;
+
+        if ($next === 'accepted') {
+            if (!$order->rider_id) {
+                $order->rider_status = 'waiting_rider';
+            }
+        }
+
+        if ($next === 'cancelled') {
+            $order->rider_status = 'cancelled';
+        }
+
+        $order->save();
+
+        return back()->with('success', 'Order status updated successfully.');
     }
 
-    $order->save();
+    public function updatePayment(Request $request, Order $order)
+    {
+        $restaurant = Restaurant::where('user_id', auth()->id())->firstOrFail();
 
-    return back()->with('success', 'Order status updated successfully.');
-}
+        if ($order->restaurant_id !== $restaurant->id) {
+            abort(403);
+        }
 
-public function updatePayment(Request $request, Order $order)
-{
-    if ($order->payment_status === 'paid') {
-        return back()->with('error', 'Payment is already paid. Restaurant cannot change it.');
+        if ($order->payment_status === 'paid') {
+            return back()->with('error', 'Payment is already paid. Restaurant cannot change it.');
+        }
+
+        $request->validate([
+            'payment_status' => 'required|in:pending,paid,failed',
+        ]);
+
+        $order->update([
+            'payment_status' => $request->payment_status,
+        ]);
+
+        return back()->with('success', 'Payment status updated successfully.');
     }
-
-    $request->validate([
-        'payment_status' => 'required|in:pending,paid,failed',
-    ]);
-
-    $order->update([
-        'payment_status' => $request->payment_status,
-    ]);
-
-    return back()->with('success', 'Payment status updated successfully.');
-}
-public function show(Order $order)
-{
-    $restaurant = Restaurant::where('user_id', auth()->id())->firstOrFail();
-
-    if ($order->restaurant_id !== $restaurant->id) {
-        abort(403);
-    }
-
-    $order->load('items.foodItem', 'user');
-
-    return view('restaurant.orders.show', compact('order'));
-}
-
 }
