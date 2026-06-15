@@ -89,14 +89,15 @@
 
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Assign Rider</label>
-                       <select name="rider_id" class="form-select">
+                        <select name="rider_id" class="form-select">
     <option value="">Not Assigned</option>
 
     @foreach($riders as $rider)
         <option value="{{ $rider->id }}"
             {{ $order->rider_id == $rider->id ? 'selected' : '' }}>
-            {{ $rider->name }}
-            - {{ $rider->phone ?? $rider->email }}
+            {{ $rider->user->name ?? 'Rider' }}
+            - {{ $rider->user->phone ?? $rider->user->email }}
+            - {{ $rider->plate_number ?? 'No Plate' }}
         </option>
     @endforeach
 </select>
