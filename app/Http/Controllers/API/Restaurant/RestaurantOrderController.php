@@ -22,7 +22,7 @@ class RestaurantOrderController extends Controller
         return view('restaurant.orders.index', compact('orders'));
     }
 
- public function updateStatus(Request $request, Order $order)
+public function updateStatus(Request $request, Order $order)
 {
     $request->validate([
         'order_status' => 'required|in:accepted,preparing,ready,cancelled',
@@ -41,9 +41,19 @@ class RestaurantOrderController extends Controller
         return back()->with('error', 'Invalid status sequence.');
     }
 
-    $order->update([
-        'order_status' => $next,
-    ]);
+    $order->order_status = $next;
+
+    if ($next === 'accepted') {
+        if (!$order->rider_id) {
+            $order->rider_status = 'waiting_rider';
+        }
+    }
+
+    if ($next === 'cancelled') {
+        $order->rider_status = 'cancelled';
+    }
+
+    $order->save();
 
     return back()->with('success', 'Order status updated successfully.');
 }
