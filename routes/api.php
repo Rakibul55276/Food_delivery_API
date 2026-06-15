@@ -75,6 +75,7 @@ Route::prefix('rider')->group(function () {
         Route::get('/orders/{id}', [RiderOrderController::class, 'show']);
         Route::patch('/orders/{id}/status', [RiderOrderController::class, 'updateStatus']);
         Route::patch('/orders/{id}/accept', [RiderOrderController::class, 'accept']);
+        Route::patch('/orders/{id}/decline', [RiderOrderController::class, 'decline']);
 
         Route::post('/location', [RiderLocationController::class, 'update']);
     });
