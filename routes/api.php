@@ -73,6 +73,7 @@ Route::prefix('rider')->group(function () {
 
         Route::get('/profile', [RiderProfileController::class, 'show']);
         Route::put('/profile', [RiderProfileController::class, 'update']);
+        Route::patch('/availability', [RiderProfileController::class, 'updateAvailability']);
 
         Route::get('/orders', [RiderOrderController::class, 'index']);
         Route::get('/orders/{id}', [RiderOrderController::class, 'show']);

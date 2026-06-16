@@ -53,4 +53,28 @@ class RiderProfileController extends Controller
         'message' => 'FCM token updated successfully'
     ]);
 }
+
+public function updateAvailability(Request $request)
+{
+    $request->validate([
+        'is_available' => 'required|boolean',
+    ]);
+
+    $rider = $request->user()->rider;
+
+    if (!$rider) {
+        return response()->json([
+            'message' => 'Rider profile not found'
+        ], 404);
+    }
+
+    $rider->update([
+        'is_available' => $request->is_available,
+    ]);
+
+    return response()->json([
+        'message' => 'Availability updated successfully',
+        'is_available' => $rider->is_available,
+    ]);
+}
 }
