@@ -64,13 +64,12 @@ public function updateAvailability(Request $request)
 
     if (!$rider) {
         return response()->json([
-            'message' => 'Rider profile not found'
+            'message' => 'Rider profile not found',
         ], 404);
     }
 
-    $rider->update([
-        'is_available' => $request->is_available,
-    ]);
+    $rider->is_available = $request->boolean('is_available');
+    $rider->save();
 
     return response()->json([
         'message' => 'Availability updated successfully',
