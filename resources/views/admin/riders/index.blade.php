@@ -10,9 +10,13 @@
         </a>
     </div>
 
-  
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
 
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped align-middle">
         <thead>
             <tr>
                 <th>Name</th>
@@ -21,7 +25,7 @@
                 <th>Vehicle</th>
                 <th>Plate</th>
                 <th>Available</th>
-                <th>Action</th>
+                <th width="260">Action</th>
             </tr>
         </thead>
 
@@ -33,6 +37,7 @@
                     <td>{{ $rider->user->phone ?? 'N/A' }}</td>
                     <td>{{ $rider->vehicle_type ?? 'N/A' }}</td>
                     <td>{{ $rider->plate_number ?? 'N/A' }}</td>
+
                     <td>
                         @if($rider->is_available)
                             <span class="badge bg-success">Available</span>
@@ -40,6 +45,7 @@
                             <span class="badge bg-danger">Unavailable</span>
                         @endif
                     </td>
+
                     <td>
                         <a href="{{ route('admin.riders.show', $rider->id) }}"
                            class="btn btn-sm btn-info">
@@ -57,8 +63,9 @@
                             @csrf
                             @method('PATCH')
 
-                            <button class="btn btn-sm btn-secondary">
-                                Toggle
+                            <button type="submit"
+                                    class="btn btn-sm {{ $rider->is_available ? 'btn-danger' : 'btn-success' }}">
+                                {{ $rider->is_available ? 'Set Offline' : 'Set Online' }}
                             </button>
                         </form>
                     </td>
@@ -73,6 +80,8 @@
         </tbody>
     </table>
 
-    {{ $riders->links() }}
+    @if($riders->hasPages())
+        {{ $riders->links() }}
+    @endif
 </div>
 @endsection
