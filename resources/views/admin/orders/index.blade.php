@@ -7,7 +7,7 @@
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                <th>Order ID</th>
+                <th>Order Number</th>
                 <th>Customer</th>
                 <th>Restaurant</th>
                 <th>Total</th>
@@ -21,7 +21,7 @@
         <tbody>
             @forelse($orders as $order)
                 <tr>
-                    <td>#{{ $order->id }}</td>
+                    <td>#{{ $order->order_no }}</td>
                     <td>{{ $order->user->name ?? 'N/A' }}</td>
                     <td>{{ $order->restaurant->name ?? 'N/A' }}</td>
                     <td>{{ number_format($order->total_amount, 2) }}</td>
