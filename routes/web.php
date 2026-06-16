@@ -172,12 +172,12 @@ Route::patch('/orders/{order}/payment', [RestaurantOrderController::class, 'upda
 
             
     });
-    Route::get('/firebase-debug', function () {
-    $path = storage_path('app/firebase/firebase-service-account.json');
+//     Route::get('/firebase-debug', function () {
+//     $path = storage_path('app/firebase/firebase-service-account.json');
 
-    return response()->json([
-        'path' => $path,
-        'exists' => file_exists($path),
-        'google_auth_exists' => class_exists(\Google\Auth\Credentials\ServiceAccountCredentials::class),
-    ]);
-});
+//     return response()->json([
+//         'path' => $path,
+//         'exists' => file_exists($path),
+//         'google_auth_exists' => class_exists(\Google\Auth\Credentials\ServiceAccountCredentials::class),
+//     ]);
+// });
