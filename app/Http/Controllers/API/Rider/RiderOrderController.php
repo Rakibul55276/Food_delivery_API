@@ -30,7 +30,6 @@ class RiderOrderController extends Controller
             'items.foodItem'
         ])
             ->where(function ($query) use ($rider, $declinedOrderIds) {
-
                 $query->where(function ($q) use ($declinedOrderIds) {
                     $q->whereNull('rider_id')
                         ->where('order_status', 'accepted')
@@ -40,13 +39,11 @@ class RiderOrderController extends Controller
                         $q->whereNotIn('id', $declinedOrderIds);
                     }
                 })
-
                 ->orWhere(function ($q) use ($rider) {
                     $q->where('rider_id', $rider->id)
                         ->where('rider_status', 'assigned')
                         ->whereIn('order_status', ['accepted', 'ready']);
                 })
-
                 ->orWhere(function ($q) use ($rider) {
                     $q->where('rider_id', $rider->id)
                         ->whereIn('rider_status', [
@@ -180,6 +177,14 @@ class RiderOrderController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
+        $status = $request->status
+            ?? $request->order_status
+            ?? $request->rider_status;
+
+        $request->merge([
+            'order_status' => $status,
+        ]);
+
         $request->validate([
             'order_status' => 'required|in:picked_up,on_the_way,delivered'
         ]);
@@ -195,7 +200,7 @@ class RiderOrderController extends Controller
         $order = Order::where('rider_id', $rider->id)
             ->findOrFail($id);
 
-        if ($request->order_status === 'picked_up') {
+        if ($status === 'picked_up') {
             if ($order->rider_status !== 'accepted') {
                 return response()->json([
                     'message' => 'Accept order first'
@@ -208,7 +213,7 @@ class RiderOrderController extends Controller
             ]);
         }
 
-        if ($request->order_status === 'on_the_way') {
+        if ($status === 'on_the_way') {
             if ($order->rider_status !== 'picked_up') {
                 return response()->json([
                     'message' => 'Order must be picked up first'
@@ -220,7 +225,7 @@ class RiderOrderController extends Controller
             ]);
         }
 
-        if ($request->order_status === 'delivered') {
+        if ($status === 'delivered') {
             if (!in_array($order->rider_status, ['picked_up', 'on_the_way'])) {
                 return response()->json([
                     'message' => 'Order must be picked up first'
@@ -230,12 +235,15 @@ class RiderOrderController extends Controller
             $order->update([
                 'order_status' => 'delivered',
                 'rider_status' => 'delivered',
+                'payment_status' => $order->payment_method === 'cash'
+                    ? 'paid'
+                    : $order->payment_status,
             ]);
         }
 
         return response()->json([
             'message' => 'Order status updated successfully',
-            'order' => $order->load([
+            'order' => $order->fresh()->load([
                 'user',
                 'restaurant',
                 'items.foodItem'
