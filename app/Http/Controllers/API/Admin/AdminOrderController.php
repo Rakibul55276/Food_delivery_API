@@ -10,13 +10,38 @@ use Illuminate\Http\Request;
 
 class AdminOrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with(['user', 'restaurant', 'rider.user'])
-            ->latest()
-            ->paginate(10);
+        $search = $request->get('search');
 
-        return view('admin.orders.index', compact('orders'));
+        $orders = Order::with(['user', 'restaurant', 'rider.user'])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('order_no', 'like', "%{$search}%")
+                        ->orWhere('order_status', 'like', "%{$search}%")
+                        ->orWhere('payment_status', 'like', "%{$search}%")
+                        ->orWhere('payment_method', 'like', "%{$search}%")
+                        ->orWhere('total_amount', 'like', "%{$search}%")
+                        ->orWhereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('restaurant', function ($restaurantQuery) use ($search) {
+                            $restaurantQuery->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('rider.user', function ($riderQuery) use ($search) {
+                            $riderQuery->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.orders.index', compact('orders', 'search'));
     }
 
     public function show(Order $order)
@@ -38,9 +63,9 @@ class AdminOrderController extends Controller
     public function update(Request $request, Order $order)
     {
         $request->validate([
-            'order_status' => 'required',
-            'payment_status' => 'required',
-            'payment_method' => 'required',
+            'order_status' => 'required|string',
+            'payment_status' => 'required|string',
+            'payment_method' => 'required|string',
             'delivery_address' => 'nullable|string',
             'latitude' => 'nullable',
             'longitude' => 'nullable',
@@ -80,17 +105,19 @@ class AdminOrderController extends Controller
 
         $totalAmount = max(0, $subtotal + $deliveryFee + $tax - $discount);
 
-        $order->order_status = $request->order_status;
-        $order->payment_status = $request->payment_status;
-        $order->payment_method = $request->payment_method;
-        $order->delivery_address = $request->delivery_address;
-        $order->latitude = $request->latitude;
-        $order->longitude = $request->longitude;
-        $order->subtotal = $subtotal;
-        $order->delivery_fee = $deliveryFee;
-        $order->discount = $discount;
-        $order->tax = $tax;
-        $order->total_amount = $totalAmount;
+        $order->update([
+            'order_status' => $request->order_status,
+            'payment_status' => $request->payment_status,
+            'payment_method' => $request->payment_method,
+            'delivery_address' => $request->delivery_address,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'subtotal' => $subtotal,
+            'delivery_fee' => $deliveryFee,
+            'discount' => $discount,
+            'tax' => $tax,
+            'total_amount' => $totalAmount,
+        ]);
 
         if ($request->filled('rider_id')) {
             $order->rider_id = $request->rider_id;

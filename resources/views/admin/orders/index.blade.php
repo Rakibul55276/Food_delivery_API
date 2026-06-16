@@ -5,7 +5,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="mb-0">All Orders</h3>
 
-        <form method="GET" action="{{ route('admin.orders.index') }}" class="d-flex">
+        <form method="GET" action="{{ route('admin.orders.index') }}">
             <input
                 type="text"
                 name="search"
